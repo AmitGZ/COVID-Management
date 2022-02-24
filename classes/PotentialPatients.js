@@ -5,6 +5,7 @@ import { getSingleById, isUnique } from './functions.js'
 export class PotentialPatients{
     constructor(){
         this.potential_patients =[]
+        this.counterID=0;
     }
 
     getAll(){
@@ -12,7 +13,9 @@ export class PotentialPatients{
     }
 
     addPotentialPatient(potential_patient, patient){
+        potential_patient.potentialPatientID=this.counterID;
         this.potential_patients.push({potential_patient, patient})
+        this.counterID++;
     }
 
     getById(id){

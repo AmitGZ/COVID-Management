@@ -1,4 +1,4 @@
-import express from 'express';
+import express from 'express';//
 const app = express();
 const PORT = 3000; //listening on port 3000
 
@@ -23,7 +23,7 @@ let patients = new Patients;
 let routes = new Routes;
 let potential_patients = new PotentialPatients;
 let labtests = [];
-
+var counterID=0;
 //for debug
 patients.addPatient({govtID : 'a', name : 'b'})
 
@@ -62,8 +62,10 @@ app.get(`/patients/:id/full`,(req,res)=>{
 
     if(!patient)    //incase patient doesn't exist 
         return res.status(400).send(`error patient with ID = ${id} not found`)
-    
-    return res.status(200).send(patient)
+    let arr=[];
+    arr.push(patient);
+    arr.push(labtests);
+    return res.status(200).send(arr)
 });
 
 //add route request
@@ -112,12 +114,17 @@ app.put(`/patients/:id/encounters` ,
     if(!patient)
         return res.status(400).send(`error patient with ID = ${id} not found`)
     
-    potential_patients.addPotentialPatient(req.body,id, patient)
-    //encounters[encounters.length-1].id = id;
+    potential_patients.addPotentialPatient(req.body, patient)
     return res.status(200).send({
         potential_patients
     });
 });
+
+app.get(`/patients/potential`,(req,res)=>{
+    let arr=[];
+    arr.push(potential_patients.getAll());
+    return res.status(200).send(arr);
+})
 
 //get encounters by id
 app.get(`/patients/:id/encounters`,(req,res)=>{
@@ -127,6 +134,8 @@ app.get(`/patients/:id/encounters`,(req,res)=>{
          return res.status(400).send(`error patient with ID = ${id} not found`)
 
     let patient_encounter = getEncountersById(id)
+    let tmp_enconters=[];
+    //tmp_enconters.push(patient_encounter);
     return res.status(200).send({
         patient_encounter
     });

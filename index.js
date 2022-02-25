@@ -10,7 +10,8 @@ import { checkDate } from './classes/date-schema.js'
 import { checkLabTest } from './classes/LabTests.js';
 import { checkPrimaryDetails } from './classes/primary-details.js';
 import { isDateSmaller , isDateFormat } from './classes/functions.js'
-import { PotentialPatients, checkPotentialPatient } from './classes/PotentialPatients.js';
+import { PotentialPatients } from './classes/PotentialPatients.js';
+import { Encounters } from './classes/Encounters.js'
 
 // initializing the app
 app.listen(
@@ -22,6 +23,7 @@ app.listen(
 let patients = new Patients;
 let routes = new Routes;
 let potential_patients = new PotentialPatients;
+let encounters = new Encounters;
 let labtests = [];
 
 //for debug
@@ -108,12 +110,13 @@ app.put(`/patients/:id/encounters` ,
     const {id} = req.params;
 
     let patient =patients.getById(id)
+
     //incase patient doesn't exist 
     if(!patient)
         return res.status(400).send(`error patient with ID = ${id} not found`)
     
-    potential_patients.addPotentialPatient(req.body,id, patient)
-    //encounters[encounters.length-1].id = id;
+    potential_patients.addPotentialPatient(req.body)
+    encounters.addEncounter((potential_patients.getAll()[potential_patients.getAll().length-1]).potentialPatientID, id)
     return res.status(200).send({
         potential_patients
     });
@@ -126,10 +129,7 @@ app.get(`/patients/:id/encounters`,(req,res)=>{
      if(!patients.getById(id))     //incase patient doesn't exist
          return res.status(400).send(`error patient with ID = ${id} not found`)
 
-    let patient_encounter = getEncountersById(id)
-    return res.status(200).send({
-        patient_encounter
-    });
+    return res.status(200).send(encounters.getByPatientID(id,potential_patients));
 })
 
 //get patients since time
@@ -170,5 +170,5 @@ app.post(`/labtests` ,
     }
 );
 
-//get labtests returns twice same person
 //adding labtests searches through id's
+//encounters get by the last 7 days

@@ -10,8 +10,9 @@ import { checkDate } from './classes/date-schema.js'
 import { checkLabTest } from './classes/LabTests.js';
 import { checkPrimaryDetails } from './classes/primary-details.js';
 import { isDateSmaller , isDateFormat } from './classes/functions.js'
-import { PotentialPatients, checkPotentialPatient } from './classes/PotentialPatients.js';
+import { PotentialPatients} from './classes/PotentialPatients.js';
 import{checkPatient} from './classes/Patient.js'
+//import{checkPotentialPatient}from './classes/PotentialPatient.js';
 // initializing the app
 app.listen(
     PORT,

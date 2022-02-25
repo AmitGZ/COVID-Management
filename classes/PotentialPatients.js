@@ -1,10 +1,12 @@
 import { check } from 'express-validator'
 import { checkPrimaryDetails } from './primary-details.js';
-import { getSingleById, isUnique } from './functions.js'
+import { getAllById, getSingleById, isUnique } from './functions.js'
 
 export class PotentialPatients{
     constructor(){
         this.potential_patients =[];
+        this.isolatedIDs = []
+        this.positiveIDs =[]
         this.counterID = 0;
     }
 
@@ -15,6 +17,7 @@ export class PotentialPatients{
     addPotentialPatient(potential_patient){
         potential_patient.potentialPatientID = this.counterID;
         this.potential_patients.push(potential_patient)
+        this.isolatedIDs.push(this.counterID)
         this.counterID++;
     }
 
@@ -22,18 +25,38 @@ export class PotentialPatients{
         return getSingleById(this.potential_patients, id, 'potentialPatientID')
     }
 
-    /*getPotential(patients){
-        arr =[]
-        for(let i =0; i<this.encounters.length; i++)
-            arr.push({potentialPatientDetails:this.getById(encounters[i].potentialPatientID) , encounteredPatient:patients.getById(id) })
-        return arr;
-    }   
+    updatePositive(id){
+        let tmp = getSingleById(this.positiveIDs,id,'positiveID')
+        if(!tmp)
+            this.positiveIDs.push({positiveID : id});
+    }
 
-    getEncountersById(potential_patient_id){
-        arr =[];
-        for(let i =0; i<this.encounters.length; i++)
-            if(this.encounters.patientID == id)
-                arr.push({potentialPatientDetails:this.getById(encounters[i].potentialPatientID) , encounteredPatient:patients.getById(id) })
-        return arr;
-    }   */
+    updateNegative(id,labtests){
+        let tmp = getAllById(labtests, id,'patientID')
+        if(tmp.length>=2 && !tmp[tmp.length-1].isCovidPositive && !tmp[tmp.length-2].isCovidPositive){
+            let index = this.isolatedIDs.indexOf(tmp)
+            this.isolatedIDs.splice(index,1)
+        }
+    }
+
+    getIsolated(encounters,patients){
+        let tmp =[]
+        for(let i =0; i<this.isolatedIDs.length; i++){
+            tmp.push({
+                potentialPatientDetails : this.getById(this.isolatedIDs[i]),
+                encounteredPatient : encounters.getEncounterByPotentialID(this.isolatedIDs[i], patients)
+            })
+        }
+        return tmp;
+    }
+
+    delete(potential_patient_id){
+        let tmp = this.getById(potential_patient_id);
+        if(!tmp)
+            return false; // delete failed
+
+        let index = this.potential_patients.indexOf(tmp)
+        this.potential_patients.splice(index,1)
+        return true; //delete successfull
+    }
 }

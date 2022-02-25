@@ -23,6 +23,18 @@ export class Patients{
     getById(id){
         return getSingleById(this.patients, id, 'patientID')
     }
+
+    getCityStatistics(){
+        let cityStatistics = {};
+        for(let i =0; i<this.patients.length; i++){
+            console.log(this.patients[i].address.city)
+            if(!cityStatistics[this.patients[i].address.city])
+                cityStatistics[this.patients[i].address.city] = 1
+            else
+                cityStatistics[this.patients[i].address.city] += 1
+        }
+        return cityStatistics;
+    }
 }
 
 export function checkPatient(arr){ 

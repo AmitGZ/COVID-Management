@@ -26,17 +26,6 @@ let potential_patients = new PotentialPatients;
 let encounters = new Encounters;
 let labtests = [];
 
-//for debug
-patients.addPatient({govtID : 'a', name : 'b'})
-
-function getEncountersById(id){
-    let tmp = [];
-    for (let i =0; i<encounters.length; i++)
-        if (encounters[i].id == id)
-            tmp.push(encounters[i]);
-    return tmp;
-}
-
 //get patients request
 app.get(`/patients`, (req, res) => {
     res.status(200).send(patients.getAll())
@@ -129,7 +118,7 @@ app.get(`/patients/:id/encounters`,(req,res)=>{
      if(!patients.getById(id))     //incase patient doesn't exist
          return res.status(400).send(`error patient with ID = ${id} not found`)
 
-    return res.status(200).send(encounters.getByPatientID(id,potential_patients));
+    return res.status(200).send(encounters.getEncounterByPatientID(id,potential_patients));
 })
 
 //get patients since time
@@ -161,14 +150,62 @@ app.post(`/labtests` ,
         if(!errors.isEmpty())
             return res.status(400).send(errors);
 
-        let patient = patients.getById(req.body.patientID)
-        if(!patient)   //incase patient doesn't exist 
-            return res.status(400).send(`error patient with ID = ${req.body.patientID} not found`)
+        let potential_patient = potential_patients.getById(req.body.patientID)
+        if(!potential_patient)   //incase patient doesn't exist 
+            return res.status(400).send(`error potential patient with ID = ${req.body.patientID} not found`)
 
         labtests.push(req.body)
+
+        if(req.body.isCovidPositive ==true)
+            potential_patients.updatePositive(req.body.patientID)
+        else
+            potential_patients.updateNegative(req.body.patientID,labtests)
+
         return res.status(200).send(req.body.patientID);
     }
 );
 
-//adding labtests searches through id's
-//encounters get by the last 7 days
+app.get('/patients/potential',
+    (req,res)=>{
+        return res.status(200).send(encounters.getAllEncounters(patients,potential_patients))
+    }
+);
+
+app.get('/patients/isolated',
+    (req,res)=>{
+        return res.status(200).send(potential_patients.getIsolated(encounters,patients));
+    }
+);
+
+app.post('/patients/potential/:potentialPatientId',
+    [checkPatient(patients.getAll())],
+    (req,res)=>{
+        //error handling
+        const errors = validationResult(req);
+        if(!errors.isEmpty())
+            return res.status(400).send(errors);
+
+        const {potentialPatientId} = req.params;
+
+        if(!potential_patients.delete(potentialPatientId))
+            return res.status(400).send(`error potential patient with ID = ${potentialPatientId} not found`)
+
+        patients.addPatient(req.body)
+        let patientID =patients.getAll()[patients.getAll().length-1].patientID
+        return res.status(200).send({patientID});
+    }
+);
+
+
+app.get('/statistics',
+    (req,res)=>{
+        let cityStatistics = patients.getCityStatistics()
+        return res.status(200).send({
+            infected: patients.getAll().length,
+            isolated: potential_patients.getIsolated(encounters,patients).length,
+            cityStatistics
+        });
+    }
+);
+
+//delete also isolated and positive

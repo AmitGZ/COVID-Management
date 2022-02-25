@@ -1,4 +1,4 @@
-import express from 'express';//
+import express from 'express';//   
 const app = express();
 const PORT = 3000; //listening on port 3000
 
@@ -25,7 +25,7 @@ let potential_patients = new PotentialPatients;
 let labtests = [];
 var counterID=0;
 //for debug
-patients.addPatient({govtID : 'a', name : 'b'})
+//patients.addPatient({govtID : 'a', name : 'b'})
 
 function getEncountersById(id){
     let tmp = [];
@@ -122,7 +122,11 @@ app.put(`/patients/:id/encounters` ,
 
 app.get(`/patients/potential`,(req,res)=>{
     let arr=[];
+    for(let i in patients){
+        
+    }
     arr.push(potential_patients.getAll());
+    //patients.getAll()
     return res.status(200).send(arr);
 })
 

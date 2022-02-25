@@ -1,7 +1,7 @@
 
 export function isUnique(array, value, arg_name){
     for (let i =0; i<array.length; i++) {
-        if (array[i][arg_name] == value) {
+        if (array[i].get()[arg_name] == value) {
             return Promise.reject('ID taken')
         }
     }

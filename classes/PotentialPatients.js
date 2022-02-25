@@ -6,6 +6,7 @@ export class PotentialPatients{
     constructor(){
         this.potential_patients =[]
         this.counterID=0;
+        this.encounterPatientID=-1;
     }
 
     getAll(){

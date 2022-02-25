@@ -4,14 +4,14 @@ const PORT = 3000; //listening on port 3000
 
 app.use(express.json()) //using express to parse json requests
 import { check, validationResult }  from 'express-validator';
-import { Patients ,checkPatient } from "./classes/Patients.js";
+import { Patients} from "./classes/Patients.js";
 import { Routes, checkRoute } from "./classes/Route.js";
 import { checkDate } from './classes/date-schema.js'
 import { checkLabTest } from './classes/LabTests.js';
 import { checkPrimaryDetails } from './classes/primary-details.js';
 import { isDateSmaller , isDateFormat } from './classes/functions.js'
 import { PotentialPatients, checkPotentialPatient } from './classes/PotentialPatients.js';
-
+import{checkPatient} from './classes/Patient.js'
 // initializing the app
 app.listen(
     PORT,
@@ -123,7 +123,7 @@ app.put(`/patients/:id/encounters` ,
 app.get(`/patients/potential`,(req,res)=>{
     let arr=[];
     for(let i in patients){
-        
+
     }
     arr.push(potential_patients.getAll());
     //patients.getAll()
@@ -183,5 +183,8 @@ app.post(`/labtests` ,
     }
 );
 
+app.get(`/patients/isolated`,(req,res)=>{
+
+})
 //get labtests returns twice same person
 //adding labtests searches through id's

@@ -4,14 +4,12 @@ const PORT = 3000; //listening on port 3000
 
 app.use(express.json()) //using express to parse json requests
 import { check, validationResult }  from 'express-validator';
-import { Patients ,checkPatient } from "./classes/Patients.js";
-import { Routes, checkRoute } from "./classes/Route.js";
-import { checkDate } from './classes/date-schema.js'
+import { checkPatient } from "./classes/Patient.js";
+import { checkRoute } from "./classes/Route.js";
+import { checkDate, validateDate } from './classes/date-schema.js'
 import { checkLabTest } from './classes/LabTests.js';
-import { checkPrimaryDetails } from './classes/primary-details.js';
-import { isDateSmaller , isDateFormat } from './classes/functions.js'
-import { PotentialPatients } from './classes/PotentialPatients.js';
-import { Encounters } from './classes/Encounters.js'
+import { checkPrimaryDetails } from './classes/PotentialPatient.js';
+import { dataBase } from './classes/DataBase.js'
 
 // initializing the app
 app.listen(
@@ -20,20 +18,16 @@ app.listen(
 )
 
 //initializing dataset.
-let patients = new Patients;
-let routes = new Routes;
-let potential_patients = new PotentialPatients;
-let encounters = new Encounters;
-let labtests = [];
+let data_base = dataBase;
 
 //get patients request
 app.get(`/patients`, (req, res) => {
-    res.status(200).send(patients.getAll())
+    res.status(200).send(data_base.getAllPatients())
 });
 
 //add new patient request
 app.put(`/patients`,
-    [checkPatient(patients.getAll())],
+    checkPatient(data_base),
     (req,res)=>{
         //error handling
         const errors = validationResult(req);
@@ -41,20 +35,19 @@ app.put(`/patients`,
             return res.status(400).send(errors);
 
         //handling valid request
-        patients.addPatient(req.body);
-        return res.status(200).send(patients.getAll());
+        data_base.addPatient(req.body);
+        return res.status(200).send(data_base.getAllPatients());
 });
 
 //get full patient
 app.get(`/patients/:id/full`,(req,res)=>{
     const {id} = req.params;
 
-    let patient = patients.getById(id)
-
-    if(!patient)    //incase patient doesn't exist 
-        return res.status(400).send(`error patient with ID = ${id} not found`)
+    let person = data_base.getByID(id)
+    if(!person)   //incase patient doesn't exist 
+        return res.status(400).send(`error person with ID = ${id} not found`)
     
-    return res.status(200).send(patient)
+    return res.status(200).send(person.getPublic(), person.isCovidPositive, person.labtests)
 });
 
 //add route request
@@ -67,29 +60,29 @@ checkRoute(),
         return res.status(400).send(errors);
 
     const {id} = req.params;
-
-    if(!patients.getById(id)) //incase patient doesn't exist 
+    let person = data_base.getByID(id)
+    if(!person || person.status != 'Patient')    //incase patient doesn't exist 
         return res.status(400).send(`error patient with ID = ${id} not found`)
     
-    routes.addRoute(req.body,id)
-    return res.status(200).send(routes.getAll());
+    //adding route
+    patient.routes.push(req.body)
+    return res.status(200).send(patient.getPublic());
 });
 
 //get route by id
 app.get(`/patients/:id/route`,(req,res)=>{
-     const {id} = req.params;
-  
-     if(!patients.getById(id))   //incase patient doesn't exist
-         return res.status(400).send(`error patient with ID = ${id} not found`)
 
-    return res.status(200).send(routes.getById(id));
+    const {id} = req.params;
+    let person = data_base.getByID(id)
+    if(!person || person.status != 'Patient')    //incase patient doesn't exist 
+        return res.status(400).send(`error patient with ID = ${id} not found`)
+
+    return res.status(200).send(patient.routes);
 })
 
 //add encounters request
 app.put(`/patients/:id/encounters` ,   
-[
-    checkPrimaryDetails()
-],
+[checkPrimaryDetails()],
 (req,res)=>{
     //error handling
     const errors = validationResult(req);
@@ -97,28 +90,26 @@ app.put(`/patients/:id/encounters` ,
         return res.status(400).send(errors);
 
     const {id} = req.params;
-
-    let patient =patients.getById(id)
-
-    //incase patient doesn't exist 
-    if(!patient)
+    let person = data_base.getByID(id)
+    if(!person || person.status != 'Patient')    //incase patient doesn't exist 
         return res.status(400).send(`error patient with ID = ${id} not found`)
     
-    potential_patients.addPotentialPatient(req.body)
-    encounters.addEncounter((potential_patients.getAll()[potential_patients.getAll().length-1]).potentialPatientID, id)
-    return res.status(200).send({
-        potential_patients
-    });
+    data_base.addPotentialPatient(req.body, id)
+    return res.status(200).send(
+        data_base.people[data_base.people.length -1].getPublic()
+    );
 });
 
 //get encounters by id
 app.get(`/patients/:id/encounters`,(req,res)=>{
+
      const {id} = req.params;
-  
-     if(!patients.getById(id))     //incase patient doesn't exist
+     let person = data_base.getByID(id)
+     if(!person || person.status != 'Patient')    //incase patient doesn't exist 
          return res.status(400).send(`error patient with ID = ${id} not found`)
 
-    return res.status(200).send(encounters.getEncounterByPatientID(id,potential_patients));
+        
+    return res.status(200).send(person.encounters);
 })
 
 //get patients since time
@@ -126,59 +117,47 @@ app.get(`/patients/new`,(req,res)=>{
     const value = req.query.since;
 
     //check date format
-    if(!isDateFormat(value))
+    if(!validateDate(value))
         return res.status(400).send(`invalid date ${value}`)
 
     //find patients after value and insert to tmp
-    let tmp = []
-    for (let i=0; i< labtests.length; i++){
-        if(isDateSmaller(value,labtests[i].testDate))
-            if(labtests[i].isCovidPositive)
-                tmp.push(labtests[i].patientID)
-    }
+    let arr = data_base.getPositiveSince(value)
     
-    return res.status(200).send(tmp)
+    return res.status(200).send(arr)
 });
 
+//add labtest
 app.post(`/labtests` ,
-    [
-        checkLabTest(labtests)
-    ],
+    [checkLabTest(data_base.labtests)],
     (req,res)=>{
         //error handling
         const errors = validationResult(req);
         if(!errors.isEmpty())
             return res.status(400).send(errors);
 
-        let potential_patient = potential_patients.getById(req.body.patientID)
-        if(!potential_patient)   //incase patient doesn't exist 
-            return res.status(400).send(`error potential patient with ID = ${req.body.patientID} not found`)
+        let person = data_base.getByID(req.body.patientID)
+        if(!person)   //incase patient doesn't exist 
+            return res.status(400).send(`error person with ID = ${req.body.patientID} not found`)
 
-        labtests.push(req.body)
-
-        if(req.body.isCovidPositive ==true)
-            potential_patients.updatePositive(req.body.patientID)
-        else
-            potential_patients.updateNegative(req.body.patientID,labtests)
-
+        person.addLabTest(req.body)
         return res.status(200).send(req.body.patientID);
     }
 );
 
 app.get('/patients/potential',
     (req,res)=>{
-        return res.status(200).send(encounters.getAllEncounters(patients,potential_patients))
+        return res.status(200).send(data_base.getAllEncounters())
     }
 );
 
 app.get('/patients/isolated',
     (req,res)=>{
-        return res.status(200).send(potential_patients.getIsolated(encounters,patients));
+        return res.status(200).send(data_base.getIsolated());
     }
 );
 
 app.post('/patients/potential/:potentialPatientId',
-    [checkPatient(patients.getAll())],
+    checkPatient(data_base),
     (req,res)=>{
         //error handling
         const errors = validationResult(req);
@@ -186,26 +165,32 @@ app.post('/patients/potential/:potentialPatientId',
             return res.status(400).send(errors);
 
         const {potentialPatientId} = req.params;
-
-        if(!potential_patients.delete(potentialPatientId))
+        let potential_patient = data_base.getByID(potentialPatientId)
+        if(!potential_patient || potential_patient.status != 'PotentialPatient')
             return res.status(400).send(`error potential patient with ID = ${potentialPatientId} not found`)
 
-        patients.addPatient(req.body)
-        let patientID =patients.getAll()[patients.getAll().length-1].patientID
-        return res.status(200).send({patientID});
+        data_base.movePotential(potentialPatientId,req.body)
+        return res.status(200).send({patientID: data_base.people[data_base.people.length-1].patientID});
     }
 );
 
 
 app.get('/statistics',
     (req,res)=>{
-        let cityStatistics = patients.getCityStatistics()
+        let cityStatistics = data_base.getCityStatistics()
         return res.status(200).send({
-            infected: patients.getAll().length,
-            isolated: potential_patients.getIsolated(encounters,patients).length,
-            cityStatistics
+            infected: data_base.getAllPositive().length,
+            healed: data_base.getByStatus('Healed').length,
+            isolated: data_base.getIsolated().length,
+            cityStatistics: cityStatistics
         });
     }
 );
 
-//delete also isolated and positive
+//add labtests to id/full
+
+//remove miliseconds from date
+
+//make regex not match globally
+
+//change to ID capital

@@ -1,6 +1,6 @@
 import express from 'express';
 const app = express();
-const PORT = 3000; //listening on port 3000
+const PORT =process.env.PORT || 3000; //listening on port 3000
 
 app.use(express.json()) //using express to parse json requests
 import { check, validationResult }  from 'express-validator';

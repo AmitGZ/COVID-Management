@@ -2,7 +2,7 @@
   "name": "Covid_API",
   "version": "1.0.0",
   "description": "This is an API to track Covid patients",
-  "main": "index.js",
+  "main": "nodemon index.js",
   "type": "module",
   "scripts": {
     "start": "SET NODE_ENV=dev && node index.js",

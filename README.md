@@ -23,7 +23,8 @@ $npm -v
 ```
 - Install Express-feature on the command line
 ```bash
-$npm install express  
+$npm install express
+$npm install express-validator
 ```
 ### Running tests 
 For running tests install dev dependencies \
@@ -80,3 +81,6 @@ This project is under the [MIT license](https://en.wikipedia.org/wiki/MIT_Licens
 
 ## Open Server
 send rest request to this link ```http://ruppin2022.herokuapp.com```
+
+## Class Diagram 
+![Class Diagram](https://user-images.githubusercontent.com/88660222/155901046-593564d9-c2c4-4792-b87d-98e38758e37b.jpeg)

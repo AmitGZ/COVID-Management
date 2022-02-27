@@ -1,3 +1,4 @@
+//Person class extends Object and used by Patient and PotentialPatient
 export class Person extends Object{
     constructor(details)
     {
@@ -11,19 +12,22 @@ export class Person extends Object{
         this.status = 'Person'
         this.isIsolated=  true;
         this.isCovidPositive =  false;
-        this.lab_tests = [];
+        this.labtests = [];
         this.negatives_in_a_row =  0;
         this.added_date = (new Date());
     }
 
+    //adding lab test protocol
     addLabTest(lab_test)
     {
-        this.lab_tests.push(lab_test)
+        this.labtests.push(lab_test)
         this.isCovidPositive = lab_test.isCovidPositive
         if(lab_test.isCovidPositive == false){
             this.negatives_in_a_row++
-            this.isIsolated = this.negatives_in_a_row >=2? false:true;
-            this.status = 'Healed'
+            if(this.negatives_in_a_row >=2){
+                this.isIsolated = false;
+                this.status = 'Healed'
+            }
         }
         else
         {

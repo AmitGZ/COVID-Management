@@ -6,11 +6,10 @@ app.use(express.json()) //using express to parse json requests
 import { check, validationResult }  from 'express-validator';
 import { checkPatient } from "./classes/Patient.js";
 import { checkRoute } from "./classes/Route.js";
-import { checkDate, validateDate } from './classes/date-schema.js'
+import { validateDate } from './classes/date-schema.js'
 import { checkLabTest } from './classes/LabTests.js';
 import { checkPrimaryDetails } from './classes/PotentialPatient.js';
 import { dataBase } from './classes/DataBase.js'
-import { People } from './classes/People.js';
 
 //initializing dataset.
 let data_base = new dataBase();
@@ -23,10 +22,11 @@ app.listen(
 
 //get patients request
 app.get(`/patients`, (req, res) => {
+    //getting all patients and sending
     res.status(200).send(data_base.people.getAllPatients())
 });
 
-//add new patient request
+//put new patient request
 app.put(`/patients`,
     checkPatient(data_base.people),
     (req,res)=>{
@@ -37,7 +37,7 @@ app.put(`/patients`,
 
         //handling valid request
         data_base.people.addPatient(req.body);
-        return res.status(200).send(data_base.people.getAllPatients());
+        return res.status(200).send(data_base.people[data_base.people.length-1].getPublic());
 });
 
 //get full patient
@@ -48,10 +48,17 @@ app.get(`/patients/:id/full`,(req,res)=>{
     if(!person)   //incase patient doesn't exist 
         return res.status(400).send(`error person with ID = ${id} not found`)
     
-    return res.status(200).send(person.getPublic(), person.isCovidPositive, person.labtests)
+    //returning relevant data
+    return res.status(200).send(
+        {
+            Patient: person.getPublic(),
+            isCovidPositive: person.isCovidPositive,
+            labtests: person.labtests
+        }
+    );
 });
 
-//add route request
+//put route request
 app.put(`/patients/:id/route` ,   
 checkRoute(),
 (req,res)=>{
@@ -78,10 +85,11 @@ app.get(`/patients/:id/route`,(req,res)=>{
     if(!person || person.status != 'Patient')    //incase patient doesn't exist 
         return res.status(400).send(`error patient with ID = ${id} not found`)
 
+    //returning the patient's routes
     return res.status(200).send(person.routes);
 })
 
-//add encounters request
+//put encounters request
 app.put(`/patients/:id/encounters` ,   
 checkPrimaryDetails(),
 (req,res)=>{
@@ -95,7 +103,9 @@ checkPrimaryDetails(),
     if(!person || person.status != 'Patient')    //incase patient doesn't exist 
         return res.status(400).send(`error patient with ID = ${id} not found`)
     
+    //adding potential patient to database
     data_base.people.addPotentialPatient(req.body, id)
+    //returning the potential person
     return res.status(200).send(
         data_base.people[data_base.people.length -1].getPublic()
     );
@@ -109,7 +119,7 @@ app.get(`/patients/:id/encounters`,(req,res)=>{
      if(!person || person.status != 'Patient')    //incase patient doesn't exist 
          return res.status(400).send(`error patient with ID = ${id} not found`)
 
-        
+    //returning the patient's encounters
     return res.status(200).send(person.encounters);
 })
 
@@ -124,10 +134,11 @@ app.get(`/patients/new`,(req,res)=>{
     //find patients after value and insert to tmp
     let arr = data_base.people.getPositiveSince(value)
     
+    //returning all the patients after since
     return res.status(200).send(arr)
 });
 
-//add labtest
+//post labtest
 app.post(`/labtests` ,
     checkLabTest(data_base.labtests),
     (req,res)=>{
@@ -140,24 +151,31 @@ app.post(`/labtests` ,
         if(!person)   //incase patient doesn't exist 
             return res.status(400).send(`error person with ID = ${req.body.patientID} not found`)
 
+        //adding labtest to database
         data_base.labtests.push(req.body)
+        //referring labtest to a person
         person.addLabTest(req.body)
-        return res.status(200).send(req.body.patientID);
+        return res.status(200).send({patientID: req.body.patientID});
     }
 );
 
+//get potential patients
 app.get('/patients/potential',
     (req,res)=>{
+        //returning all potential patients and their encounters
         return res.status(200).send(data_base.people.getAllEncounters())
     }
 );
 
+//get all isolated
 app.get('/patients/isolated',
     (req,res)=>{
+        //returning all people isolated
         return res.status(200).send(data_base.people.getIsolated());
     }
 );
 
+//post potential to patient
 app.post('/patients/potential/:potentialPatientId',
     checkPatient(data_base.people),
     (req,res)=>{
@@ -171,15 +189,19 @@ app.post('/patients/potential/:potentialPatientId',
         if(!potential_patient || potential_patient.status != 'PotentialPatient')
             return res.status(400).send(`error potential patient with ID = ${potentialPatientId} not found`)
 
+        //moving from potential to patient status
         data_base.people.movePotential(potentialPatientId,req.body)
+        //returning the patient created
         return res.status(200).send({patientID: data_base.people[data_base.people.length-1].patientID});
     }
 );
 
-
+//get statistics
 app.get('/statistics',
     (req,res)=>{
+        //calculating the city statistics
         let cityStatistics = data_base.people.getCityStatistics()
+        //returning statistics
         return res.status(200).send({
             infected: data_base.people.getAllPositive().length,
             healed: data_base.people.getByStatus('Healed').length,
@@ -188,7 +210,3 @@ app.get('/statistics',
         });
     }
 );
-
-//add labtests to id/full
-
-//make regex not match globally

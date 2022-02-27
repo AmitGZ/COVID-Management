@@ -1,14 +1,14 @@
-import { Person } from "./Person.js";
 import { Patient } from "./Patient.js";
 import { PotentialPatient } from "./PotentialPatient.js";
 import { getSingleByID } from "./functions.js";
 
 export class People extends Array{
     constructor(){
-        super(0);
-        this.counterID = 0
+        super(0);//initializing empty array
+        this.counterID = 0 //used for giving Unique ID's to each patient/potential-patient
     }
 
+    //getting all people that are patients
     getAllPatients(){
         let tmp =[]
         for(let i =0; i<this.length; i++){
@@ -18,6 +18,7 @@ export class People extends Array{
         return tmp
     }
 
+    //getting all people that are potential patients
     getAllPotentialPatients(){
         let tmp =[]
         for(let i =0; i<this.length; i++){
@@ -27,6 +28,7 @@ export class People extends Array{
         return tmp
     }
 
+    //getting all encounters by patient 
     getEncountersByPatient(patient){
         let potential_patients = getPotentialPatients()
         let arr =[patient]
@@ -37,6 +39,7 @@ export class People extends Array{
         return arr;
     }
 
+    //getting all people that are isolated
     getIsolated(){
         let tmp =[]
         for(let i =0; i<this.length; i++)
@@ -45,6 +48,7 @@ export class People extends Array{
         return tmp;
     }
 
+    //get all people that are positive since a certain date
     getPositiveSince(date){
         let tmp = []
         date = new Date(date)
@@ -54,6 +58,7 @@ export class People extends Array{
         return tmp
     }
 
+    //getting a person by a unique ID
     getByID(id){
         let tmp = getSingleByID(this, id, 'patientID');
         if(!tmp)
@@ -61,6 +66,7 @@ export class People extends Array{
         return tmp;
     }
 
+    //adding a patient
     addPatient(patient){
         patient.patientID =  this.counterID.toString();
         patient = new Patient(patient)
@@ -68,14 +74,16 @@ export class People extends Array{
         this.counterID++;
     }
 
+    //adding a potential patient
     addPotentialPatient(potential_patient, encountered_patient_id){
-        potential_patient.potentialPatientID = this.counterID.toString()
-        potential_patient = new PotentialPatient(potential_patient)
-        this.push(potential_patient)
-        this.getByID(encountered_patient_id).encountered.push(potential_patient.getPublic())
+        potential_patient.potentialPatientID = this.counterID.toString()//adding unique id
+        potential_patient = new PotentialPatient(potential_patient) //creating new potential
+        this.push(potential_patient) //pushing to people
+        this.getByID(encountered_patient_id).encountered.push(potential_patient.getPublic())//adding encounter to patient
         this.counterID++;
     }
 
+    //getting all encounters
     getAllEncounters(){
         let encounters =[]
         for(let i =0; i<this.length; i++){
@@ -90,12 +98,14 @@ export class People extends Array{
         return encounters;
     }
 
+    //moving a potential patient to be a patient
     movePotential(id,patient){
         let i = this.findIndex(x => x.potentialPatientID == id);
         this.splice(i, 1)
         this.addPatient(patient);
     }
 
+    //getting from all people by status
     getByStatus(stat){
         let tmp = []
         for (let i=0; i< this.length; i++)
@@ -104,6 +114,7 @@ export class People extends Array{
         return tmp
     }
 
+    //get all people that are COVID positive
     getAllPositive(){
         let tmp = []
         for (let i=0; i< this.length; i++)
@@ -112,19 +123,24 @@ export class People extends Array{
         return tmp
     }
 
+    //getting city statistics
     getCityStatistics(){
         let stats = [];
         for(let i =0 ;i<this.length;i++){
-            let city_info = getSingleByID(stats, this[i].address.city, 'city')
-            if(city_info){
-                if(this[i].isCovidPositive)
-                    city_info.infected++;
-            }
-            else
+            if(this[i].address)// if city not inserted yet
             {
-                stats.push({city : this[i].address.city , infected:0})
-                if(this[i].isCovidPositive)
-                    stats[stats.length-1].infected++;
+                let city_info = getSingleByID(stats, this[i].address.city, 'city')
+                if(city_info)// if city already exists
+                {
+                    if(this[i].isCovidPositive)
+                        city_info.infected++;
+                }
+                else //if city doesn't exist add to city list
+                {
+                    stats.push({city : this[i].address.city , infected:0})
+                    if(this[i].isCovidPositive)
+                        stats[stats.length-1].infected++;
+                }
             }
 
         }

@@ -1,5 +1,6 @@
 import { check } from 'express-validator'
 
+//request body validation
 export function checkAddress(arg_name){ 
     return [
     check(arg_name + '.city').notEmpty().isString(),

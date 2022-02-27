@@ -1,6 +1,7 @@
 import { Person } from "./Person.js"
 import { check } from 'express-validator'
 
+//Potential Patient class extends person properties
 export class PotentialPatient extends Person{
     constructor(potential_patient)
     {
@@ -11,11 +12,12 @@ export class PotentialPatient extends Person{
 
     getPublic(){
         //return object without these fields
-        const { isIsolated,isPositive, lab_tests, negatives_in_a_row, isCovidPositive,added_date,status, ...publicObject } = this
+        const { isIsolated,isPositive, labtests, negatives_in_a_row, isCovidPositive,added_date,status, ...publicObject } = this
         return publicObject;
     }  
 }
 
+//request validation
 export function checkPrimaryDetails(){ 
     return [
     check('firstName').notEmpty().isString(),

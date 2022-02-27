@@ -5,6 +5,7 @@ import { checkDate } from "./date-schema.js";
 import { checkAddress } from "./Address.js";
 import { isUnique } from "./functions.js";
 
+//Patient class extends person properties
 export class Patient extends Person{ 
     constructor(patient){
         super(patient)
@@ -24,12 +25,12 @@ export class Patient extends Person{
     
     getPublic(){
         //return object without these fields
-        const { added_date, routes,lab_tests, encountered, status, isIsolated, isCovidPositive, negatives_in_a_row, ...publicObject } = this
+        const { added_date, routes,labtests, encountered, status, isIsolated, isCovidPositive, negatives_in_a_row, ...publicObject } = this
         return publicObject;
     }
 }   
 
-
+//request body validation
 export function checkPatient(people){ 
     return [
     checkPrimaryDetails(),

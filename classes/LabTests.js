@@ -2,6 +2,7 @@ import { check } from 'express-validator'
 import { checkDate } from './date-schema.js'
 import { isUnique } from './functions.js'
 
+//request body validation
 export function checkLabTest(arr){ 
     return [
     check('labID').notEmpty().isString(),

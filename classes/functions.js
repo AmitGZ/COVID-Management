@@ -1,4 +1,7 @@
 
+//helper functions used often by program
+
+//check if a field is unique in an array
 export function isUnique(array, value, arg_name){
     for (let i =0; i<array.length; i++) {
         if (array[i][arg_name] == value) {
@@ -8,15 +11,7 @@ export function isUnique(array, value, arg_name){
     return true;
 }
 
-export function isDateSmaller(date1,date2){
-    //this funciton receives two dates and returns true if date1<=date2, else false
-    date1 = new Date(date1)
-    date2 = new Date(date2)
-    if(date1<=date2)
-        return true;
-    return false;
-}
-
+//this function returns MULTIPLE objects with the field id in them
 export function getAllByID(arr, id, arg_name){
     let tmp = [];
     for (let i =0; i<arr.length; i++)
@@ -25,6 +20,8 @@ export function getAllByID(arr, id, arg_name){
     return tmp;
 }
 
+
+//this function returns a SINGLE objects with the field id in them
 export function getSingleByID(arr, id, arg_name){
     let tmp;
     for (let i =0; i<arr.length; i++)

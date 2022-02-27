@@ -79,23 +79,8 @@ export class People extends Array{
         potential_patient.potentialPatientID = this.counterID.toString()//adding unique id
         potential_patient = new PotentialPatient(potential_patient) //creating new potential
         this.push(potential_patient) //pushing to people
-        this.getByID(encountered_patient_id).encountered.push(potential_patient.getPublic())//adding encounter to patient
+        this.getByID(encountered_patient_id).encounters.push(potential_patient.getPublic())//adding encounter to patient
         this.counterID++;
-    }
-
-    //getting all encounters
-    getAllEncounters(){
-        let encounters =[]
-        for(let i =0; i<this.length; i++){
-            if(this[i].status == 'Patient')
-                encounters.push(
-                    {
-                        potentialPatientDetails: this[i].encountered,
-                        encounteredPatient: this[i].getPublic()
-                    }
-                )
-        }
-        return encounters;
     }
 
     //moving a potential patient to be a patient

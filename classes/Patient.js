@@ -20,13 +20,27 @@ export class Patient extends Person{
         //private fields
         this.status= 'Patient';
         this.routes= [];
-        this.encountered= [];
+        this.encounters= [];
     }
     
     getPublic(){
         //return object without these fields
-        const { added_date, routes,labtests, encountered, status, isIsolated, isCovidPositive, negatives_in_a_row, ...publicObject } = this
+        const { added_date, routes,labtests, encounters, status, isIsolated, isCovidPositive, negatives_in_a_row, ...publicObject } = this
         return publicObject;
+    }
+
+    //getting all encounters
+    getAllEncounters(){
+        let encounters =[]
+        for(let i =0; i< this.encounters.length; i++){
+            encounters.push(
+                {
+                    potentialPatientDetails: this.encounters[i],
+                    encounteredPatient: this.getPublic()
+                }
+            )
+        }
+        return encounters;
     }
 }   
 

@@ -1,15 +1,23 @@
-export const Person = function (person){
-    return (
-    Object.assign(
+export class Person extends Object{
+    constructor(details)
     {
-    //private values
-    status: null,
-    isIsolated: true,
-    isCovidPositive: false,
-    lab_tests: [],
-    negatives_in_a_row: 0,
-    added_date: (new Date()),
-    addLabTest(lab_test){
+        super();
+        this.firstName = details.firstName;
+        this.lastName = details.lastName;
+        this.phoneNumber = details.phoneNumber;
+
+        
+        //private fields
+        this.status = 'Person'
+        this.isIsolated=  true;
+        this.isCovidPositive =  false;
+        this.lab_tests = [];
+        this.negatives_in_a_row =  0;
+        this.added_date = (new Date());
+    }
+
+    addLabTest(lab_test)
+    {
         this.lab_tests.push(lab_test)
         this.isCovidPositive = lab_test.isCovidPositive
         if(lab_test.isCovidPositive == false){
@@ -22,11 +30,5 @@ export const Person = function (person){
             negatives_in_a_row =0;
             this.status = 'Infected'
         }
-    },
-    getType(){
-        return this.status;
     }
-    }
-    ,person
-))
 }

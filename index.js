@@ -10,6 +10,10 @@ import { checkDate, validateDate } from './classes/date-schema.js'
 import { checkLabTest } from './classes/LabTests.js';
 import { checkPrimaryDetails } from './classes/PotentialPatient.js';
 import { dataBase } from './classes/DataBase.js'
+import { People } from './classes/People.js';
+
+//initializing dataset.
+let data_base = new dataBase();
 
 // initializing the app
 app.listen(
@@ -17,17 +21,14 @@ app.listen(
    () => {console.log(`listening on http://localhost:${PORT}`)}
 )
 
-//initializing dataset.
-let data_base = dataBase;
-
 //get patients request
 app.get(`/patients`, (req, res) => {
-    res.status(200).send(data_base.getAllPatients())
+    res.status(200).send(data_base.people.getAllPatients())
 });
 
 //add new patient request
 app.put(`/patients`,
-    checkPatient(data_base),
+    checkPatient(data_base.people),
     (req,res)=>{
         //error handling
         const errors = validationResult(req);
@@ -35,15 +36,15 @@ app.put(`/patients`,
             return res.status(400).send(errors);
 
         //handling valid request
-        data_base.addPatient(req.body);
-        return res.status(200).send(data_base.getAllPatients());
+        data_base.people.addPatient(req.body);
+        return res.status(200).send(data_base.people.getAllPatients());
 });
 
 //get full patient
 app.get(`/patients/:id/full`,(req,res)=>{
     const {id} = req.params;
 
-    let person = data_base.getByID(id)
+    let person = data_base.people.getByID(id)
     if(!person)   //incase patient doesn't exist 
         return res.status(400).send(`error person with ID = ${id} not found`)
     
@@ -60,7 +61,7 @@ checkRoute(),
         return res.status(400).send(errors);
 
     const {id} = req.params;
-    let person = data_base.getByID(id)
+    let person = data_base.people.getByID(id)
     if(!person || person.status != 'Patient')    //incase patient doesn't exist 
         return res.status(400).send(`error patient with ID = ${id} not found`)
     
@@ -73,7 +74,7 @@ checkRoute(),
 app.get(`/patients/:id/route`,(req,res)=>{
 
     const {id} = req.params;
-    let person = data_base.getByID(id)
+    let person = data_base.people.getByID(id)
     if(!person || person.status != 'Patient')    //incase patient doesn't exist 
         return res.status(400).send(`error patient with ID = ${id} not found`)
 
@@ -82,7 +83,7 @@ app.get(`/patients/:id/route`,(req,res)=>{
 
 //add encounters request
 app.put(`/patients/:id/encounters` ,   
-[checkPrimaryDetails()],
+checkPrimaryDetails(),
 (req,res)=>{
     //error handling
     const errors = validationResult(req);
@@ -90,11 +91,11 @@ app.put(`/patients/:id/encounters` ,
         return res.status(400).send(errors);
 
     const {id} = req.params;
-    let person = data_base.getByID(id)
+    let person = data_base.people.getByID(id)
     if(!person || person.status != 'Patient')    //incase patient doesn't exist 
         return res.status(400).send(`error patient with ID = ${id} not found`)
     
-    data_base.addPotentialPatient(req.body, id)
+    data_base.people.addPotentialPatient(req.body, id)
     return res.status(200).send(
         data_base.people[data_base.people.length -1].getPublic()
     );
@@ -104,7 +105,7 @@ app.put(`/patients/:id/encounters` ,
 app.get(`/patients/:id/encounters`,(req,res)=>{
 
      const {id} = req.params;
-     let person = data_base.getByID(id)
+     let person = data_base.people.getByID(id)
      if(!person || person.status != 'Patient')    //incase patient doesn't exist 
          return res.status(400).send(`error patient with ID = ${id} not found`)
 
@@ -121,24 +122,25 @@ app.get(`/patients/new`,(req,res)=>{
         return res.status(400).send(`invalid date ${value}`)
 
     //find patients after value and insert to tmp
-    let arr = data_base.getPositiveSince(value)
+    let arr = data_base.people.getPositiveSince(value)
     
     return res.status(200).send(arr)
 });
 
 //add labtest
 app.post(`/labtests` ,
-    [checkLabTest(data_base.labtests)],
+    checkLabTest(data_base.labtests),
     (req,res)=>{
         //error handling
         const errors = validationResult(req);
         if(!errors.isEmpty())
             return res.status(400).send(errors);
 
-        let person = data_base.getByID(req.body.patientID)
+        let person = data_base.people.getByID(req.body.patientID)
         if(!person)   //incase patient doesn't exist 
             return res.status(400).send(`error person with ID = ${req.body.patientID} not found`)
 
+        data_base.labtests.push(req.body)
         person.addLabTest(req.body)
         return res.status(200).send(req.body.patientID);
     }
@@ -146,18 +148,18 @@ app.post(`/labtests` ,
 
 app.get('/patients/potential',
     (req,res)=>{
-        return res.status(200).send(data_base.getAllEncounters())
+        return res.status(200).send(data_base.people.getAllEncounters())
     }
 );
 
 app.get('/patients/isolated',
     (req,res)=>{
-        return res.status(200).send(data_base.getIsolated());
+        return res.status(200).send(data_base.people.getIsolated());
     }
 );
 
 app.post('/patients/potential/:potentialPatientId',
-    checkPatient(data_base),
+    checkPatient(data_base.people),
     (req,res)=>{
         //error handling
         const errors = validationResult(req);
@@ -165,11 +167,11 @@ app.post('/patients/potential/:potentialPatientId',
             return res.status(400).send(errors);
 
         const {potentialPatientId} = req.params;
-        let potential_patient = data_base.getByID(potentialPatientId)
+        let potential_patient = data_base.people.getByID(potentialPatientId)
         if(!potential_patient || potential_patient.status != 'PotentialPatient')
             return res.status(400).send(`error potential patient with ID = ${potentialPatientId} not found`)
 
-        data_base.movePotential(potentialPatientId,req.body)
+        data_base.people.movePotential(potentialPatientId,req.body)
         return res.status(200).send({patientID: data_base.people[data_base.people.length-1].patientID});
     }
 );
@@ -177,11 +179,11 @@ app.post('/patients/potential/:potentialPatientId',
 
 app.get('/statistics',
     (req,res)=>{
-        let cityStatistics = data_base.getCityStatistics()
+        let cityStatistics = data_base.people.getCityStatistics()
         return res.status(200).send({
-            infected: data_base.getAllPositive().length,
-            healed: data_base.getByStatus('Healed').length,
-            isolated: data_base.getIsolated().length,
+            infected: data_base.people.getAllPositive().length,
+            healed: data_base.people.getByStatus('Healed').length,
+            isolated: data_base.people.getIsolated().length,
             cityStatistics: cityStatistics
         });
     }
@@ -189,8 +191,4 @@ app.get('/statistics',
 
 //add labtests to id/full
 
-//remove miliseconds from date
-
 //make regex not match globally
-
-//change to ID capital

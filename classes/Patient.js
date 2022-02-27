@@ -5,28 +5,35 @@ import { checkDate } from "./date-schema.js";
 import { checkAddress } from "./Address.js";
 import { isUnique } from "./functions.js";
 
-export const Patient = function(patient){ 
-    return Object.assign(
-    Person(patient),
-    {
-        added_date: (new Date()),
-        status: 'Patient',
-        routes: [],
-        lab_tests: [],
-        encountered: [],
-        getPublic: function(){
-            //remove these fields
-            const { added_date, routes,lab_tests, encountered, status, isIsolated, isCovidPositive, negatives_in_a_row, ...publicObject } = this
-            return publicObject;
-        }
-    }   
-);
-}
+export class Patient extends Person{ 
+    constructor(patient){
+        super(patient)
+        this.patientID =  patient.patientID;
+        this.govtID = patient.govtID;
+        this.birthDate = patient.birthDate;
+        this.email = patient.email;
+        this.address = patient.address;
+        this.houseResidentsAmount = patient.houseResidentsAmount;
+        this.isCovidPositive = patient.isCovidPositive;
 
-export function checkPatient(db){ 
+        //private fields
+        this.status= 'Patient';
+        this.routes= [];
+        this.encountered= [];
+    }
+    
+    getPublic(){
+        //return object without these fields
+        const { added_date, routes,lab_tests, encountered, status, isIsolated, isCovidPositive, negatives_in_a_row, ...publicObject } = this
+        return publicObject;
+    }
+}   
+
+
+export function checkPatient(people){ 
     return [
     checkPrimaryDetails(),
-    check('govtID').notEmpty().isString().custom((value)=> {return  isUnique(db.getAllPatients(),value,'govtID')}),
+    check('govtID').notEmpty().isString().custom((value)=> {return  isUnique(people.getAllPatients(),value,'govtID')}),
     checkDate('birthDate'),
     check('email').notEmpty().isString(),
     checkAddress('address'),

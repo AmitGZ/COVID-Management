@@ -17,7 +17,7 @@ export function isDateSmaller(date1,date2){
     return false;
 }
 
-export function getAllById(arr, id, arg_name){
+export function getAllByID(arr, id, arg_name){
     let tmp = [];
     for (let i =0; i<arr.length; i++)
         if (arr[i][arg_name] == id)
@@ -25,7 +25,7 @@ export function getAllById(arr, id, arg_name){
     return tmp;
 }
 
-export function getSingleById(arr, id, arg_name){
+export function getSingleByID(arr, id, arg_name){
     let tmp;
     for (let i =0; i<arr.length; i++)
         if (arr[i][arg_name] == id){

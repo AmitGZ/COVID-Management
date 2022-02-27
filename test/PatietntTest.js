@@ -5,10 +5,13 @@ process.env.NODE_ENV = 'test';
 import chai from 'chai';
 import chaiHttp from 'chai-http';
 import server from '../index.js';
-import {examples} from '../classes/examples.js'
+import { examples } from '../classes/examples.js'
 let should = chai.should();
 chai.use(chaiHttp);
 
+//adding data for testing
+server.data_base.people.addPatient(examples.patient1) //adding patient for testing
+server.data_base.people.addPotentialPatient(examples.potential, server.data_base.people[server.data_base.people.length-1].patientID)
 
 describe('Patients', () => {
 /** Test the /GET route*/
@@ -20,7 +23,6 @@ describe('Patients', () => {
             .end((err, res) => {
                   res.should.have.status(200);
                   res.body.should.be.a('array');
-                  res.body.length.should.be.eql(0);
               done();
             });
       });
@@ -31,7 +33,7 @@ describe('Patients', () => {
     (done) => {
       chai.request(server)
           .put(`/patients`)
-          .send(examples().patient)
+          .send(examples.patient2)
           .end((err, res) => {
               res.should.have.status(200);
               res.body.should.be.an('object');
@@ -49,7 +51,7 @@ describe('Labtests', () => {
     (done) => {
       chai.request(server)
           .post(`/labtests`)
-          .send(examples().labtest)
+          .send(examples.labtest)
           .end((err, res) => {
               res.should.have.status(200);
               res.body.should.be.an('object');
@@ -70,7 +72,7 @@ describe('Routes', () => {
     (done) => {
       chai.request(server)
           .put(`/patients/0/route`)
-          .send(examples().route)
+          .send(examples.route)
           .end((err, res) => {
               res.should.have.status(200);
               res.body.should.be.an('object');
@@ -83,7 +85,6 @@ describe('Routes', () => {
   describe('/Get Routes', () => {
     it('it should Get a new Route', 
     (done) => {
-      server.data_base.people.addPatient(examples().patient)
       chai.request(server)
           .get(`/patients/0/route`)
           .end((err, res) => {
@@ -105,10 +106,9 @@ describe('Encounters', () => {
   describe('/Put Encounter', () => {
     it('it should PUT a new Encounter', 
     (done) => {
-      server.data_base.people.addPatient(examples().patient)
       chai.request(server)
           .put(`/patients/0/encounters`)
-          .send(examples().encounter)
+          .send(examples.encounter)
           .end((err, res) => {
               res.should.have.status(200);
               res.body.should.have.property('firstName').and.to.be.a('string');
@@ -123,7 +123,6 @@ describe('Encounters', () => {
   describe('/Get Encounters', () => {
     it('it should Get all Encounters by patient', 
     (done) => {
-      server.data_base.people.addPatient(examples().patient) //adding patient for testing
       chai.request(server)
           .get(`/patients/0/encounters`)
           .end((err, res) => {
@@ -134,5 +133,96 @@ describe('Encounters', () => {
             done();
           });
     });
+  });
+});
+
+/** Test the /Get FULL */
+describe('/Get FUll details of person with his lab tests', () => {
+  it('it should Get all FUll  patient data', 
+  (done) => {
+    chai.request(server)
+        .get(`/patients/0/full`)
+        .end((err, res) => {
+            res.should.have.status(200);
+            res.body.should.be.an('object');
+            res.body.should.have.property('isCovidPositive').and.to.be.a('boolean');
+            res.body.should.have.property('labResults').and.to.be.an('array');
+          done();
+        });
+  });
+});
+
+/** Test the /Get Since */
+describe('/Get LIST OF ALL SICK PEOPLE', () => {
+  it('it should LIST OF ALL SICK PEOPLE SINCE A CERTAIN TIME', 
+  (done) => {
+    chai.request(server)
+        .get(`/patients/new?since=2022-02-25T11:34:10Z`)
+        .end((err, res) => {
+            res.should.have.status(200);
+                res.body.should.be.an('array');
+          done();
+        });
+  });
+});
+
+/** Test the /Potential */
+describe('/Potential', () => {
+  it('it should return the list of encounters where the person details were not inserted yet', 
+  (done) => {
+    chai.request(server)
+        .get(`/patients/potential`)
+        .end((err, res) => {
+            res.should.have.status(200);
+            res.body.should.be.an('array');
+          done();
+        });
+  });
+});
+
+describe('/Isolated', () => {
+  it('it should return the list of all isolated people', 
+  (done) => {
+    chai.request(server)
+        .get(`/patients/potential`)
+        .end((err, res) => {
+            res.should.have.status(200);
+            res.body.should.be.an('array');
+          done();
+        });
+  });
+});
+
+/** Test the POST /Potential */
+describe('/Potential', () => {
+  it('it should move the potential to be a patient', 
+  (done) => {
+    chai.request(server)
+        .post(`/patients/potential/1`)
+        .send(examples.patient3)
+        .end((err, res) => {
+            res.should.have.status(200);
+            res.body.should.be.an('object');
+            res.body.should.have.property('patientID').and.to.be.an('string');
+          done();
+        });
+  });
+});
+
+/** Test the get /statistics */
+describe('/Statistics', () => {
+  it('it should get all the statistics', 
+  (done) => {
+    chai.request(server)
+        .get(`/statistics`)
+        .end((err, res) => {
+            res.should.have.status(200);
+            res.body.should.be.an('object');
+            res.body.should.have.property('infected').and.to.be.an('number');
+            res.body.should.have.property('healed').and.to.be.an('number');
+            res.body.should.have.property('isolated').and.to.be.an('number');
+            res.body.should.have.property('cityStatistics').and.to.be.an('array');
+          done();
+        });
   });
 });

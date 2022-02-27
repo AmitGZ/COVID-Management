@@ -53,7 +53,7 @@ app.get(`/patients/:id/full`,(req,res)=>{
         {
             Patient: person.getPublic(),
             isCovidPositive: person.isCovidPositive,
-            labtests: person.labtests
+            labResults: person.labtests
         }
     );
 });
@@ -126,7 +126,7 @@ app.get(`/patients/:id/encounters`,(req,res)=>{
     return res.status(200).send(person.getAllEncounters());
 })
 
-//get patients since time
+//get all sick since time
 app.get(`/patients/new`,(req,res)=>{
     const value = req.query.since;
 
@@ -166,7 +166,7 @@ app.post(`/labtests` ,
 app.get('/patients/potential',
     (req,res)=>{
         //returning all potential patients and their encounters
-        return res.status(200).send(app.data_base.people.getAllEncounters())
+        return res.status(200).send(app.data_base.people.getAllPotentialPatients())
     }
 );
 

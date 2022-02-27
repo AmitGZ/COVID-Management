@@ -28,6 +28,11 @@ describe('Patients', () => {
                   res.body.length.should.be.eql(0);
               done();
             });
+            console.log('**************')
+            return;
       });
+      return;
   });
+  console.log('tsadfsaasdfasdf')
+  return;
 });

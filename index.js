@@ -17,7 +17,7 @@ let data_base = new dataBase();
 // initializing the app
 app.listen(
     PORT,
-   () => {console.log(`listening on http://localhost:${PORT}`)}
+   () => {console.log(`listening on port ${PORT}`)}
 )
 
 //get patients request

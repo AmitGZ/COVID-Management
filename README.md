@@ -77,3 +77,6 @@ The server should return the message
 * [Shahar Ben Tov](https://github.com/sbt94)
 ## License
 This project is under the [MIT license](https://en.wikipedia.org/wiki/MIT_License)
+
+## Open Server
+send rest request to this link ```http://ruppin2022.herokuapp.com```

@@ -210,3 +210,5 @@ app.get('/statistics',
         });
     }
 );
+
+export default app; // for testing

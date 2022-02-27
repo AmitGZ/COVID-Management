@@ -1,10 +1,16 @@
 //During the test the env variable is set to test
 process.env.NODE_ENV = 'test';
 
+
+import chai from 'chai';
+import chaiHttp from 'chai-http';
+import server from '../index.js';
+
 //Require the dev-dependencies
-let chai = require('chai');
-let chaiHttp = require('chai-http');
-let server = require('../index.js'); //change maybe
+
+//let chai = require('chai');
+//let chaiHttp = require('chai-http');
+//let server = require('../index.js'); //change maybe
 let should = chai.should();
 
 chai.use(chaiHttp);

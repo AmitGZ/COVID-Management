@@ -66,8 +66,8 @@ checkRoute(),
         return res.status(400).send(`error patient with ID = ${id} not found`)
     
     //adding route
-    patient.routes.push(req.body)
-    return res.status(200).send(patient.getPublic());
+    person.routes.push(req.body)
+    return res.status(200).send(person.routes[person.routes.length-1]);
 });
 
 //get route by id
@@ -78,7 +78,7 @@ app.get(`/patients/:id/route`,(req,res)=>{
     if(!person || person.status != 'Patient')    //incase patient doesn't exist 
         return res.status(400).send(`error patient with ID = ${id} not found`)
 
-    return res.status(200).send(patient.routes);
+    return res.status(200).send(person.routes);
 })
 
 //add encounters request
